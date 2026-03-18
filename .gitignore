@@ -1,0 +1,33 @@
+# ========================
+# Angular / Node
+# ========================
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.env
+
+# ========================
+# .NET / C#
+# ========================
+backend/bin/
+backend/obj/
+backend/*.user
+backend/appsettings.Production.json
+*.suo
+*.vs/
+.vs/
+
+# ========================
+# Secrets & Env
+# ========================
+.env
+.env.local
+.env.*.local
+secrets.json
+
+# ========================
+# OS
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
