@@ -1,0 +1,58 @@
+<div class="media-card" [class.media-card--watched]="item().isWatched">
+
+  <div class="media-card__poster">
+    <img
+      class="media-card__img"
+      [src]="item().posterUrl || posterFallback"
+      [alt]="item().title"
+      loading="lazy"
+      (error)="$any($event.target).src = posterFallback"
+    />
+
+    <!-- Watched overlay -->
+    @if (item().isWatched) {
+      <div class="media-card__watched-overlay"></div>
+    }
+
+    <!-- Actions -->
+    <div class="media-card__actions">
+      <button
+        class="media-card__btn"
+        [class.media-card__btn--active]="item().isWatched"
+        type="button"
+        title="Toggle Watched"
+        (click)="onToggleWatched($event)"
+      >
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="12" height="12">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+        </svg>
+      </button>
+      <button
+        class="media-card__btn media-card__btn--star"
+        type="button"
+        title="Rate"
+        (click)="onStarClick($event)"
+      >
+        <svg fill="currentColor" viewBox="0 0 24 24" width="12" height="12">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Genre badge -->
+    @if (item().genres.length > 0) {
+      <div class="media-card__badge">{{ item().genres[0] }}</div>
+    }
+  </div>
+
+  <div class="media-card__info">
+    <h3 class="media-card__title">{{ item().title }}</h3>
+    <div class="media-card__meta">
+      <span class="media-card__year">{{ item().year }} • {{ item().type }}</span>
+      @if (item().rating) {
+        <span class="media-card__rating">{{ item().rating }}</span>
+      }
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,108 @@
+<div class="catalog">
+
+  <!-- Filter Bar -->
+  <section class="catalog__filters">
+    <div class="catalog__filters-row">
+
+      <!-- Type pills (only on "All" page) -->
+      @if (!mediaType()) {
+        <div class="filter-pills">
+          @for (type of typeFilters; track type) {
+            <button
+              class="filter-pill"
+              [class.filter-pill--active]="activeTypeFilter() === type"
+              type="button"
+              (click)="setTypeFilter(type)"
+            >{{ type }}</button>
+          }
+        </div>
+      }
+
+      <!-- Dropdowns -->
+      <div class="catalog__dropdowns">
+        <select class="filter-select" [value]="selectedGenre()" (change)="onGenreChange($any($event.target).value)">
+          <option value="">All Genres</option>
+          @for (genre of genres(); track genre) {
+            <option [value]="genre">{{ genre }}</option>
+          }
+        </select>
+
+        <select class="filter-select" [value]="selectedStatus()" (change)="onStatusChange($any($event.target).value)">
+          <option value="">Status: All</option>
+          <option value="Watched">Watched</option>
+          <option value="ToWatch">To Watch</option>
+          <option value="Watching">Watching</option>
+          <option value="Dropped">Dropped</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- Loading skeleton -->
+  @if (isLoading() && items().length === 0) {
+    <div class="catalog__grid">
+      @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
+        <div class="catalog__skeleton"></div>
+      }
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (!isLoading() && items().length === 0) {
+    <div class="catalog__empty">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="48" height="48">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+      </svg>
+      <p>No items found.</p>
+      <span>Try adjusting your filters.</span>
+    </div>
+  }
+
+  <!-- Grid -->
+  @if (items().length > 0) {
+    <div class="catalog__grid">
+      @for (item of items(); track item.id) {
+        <app-media-card
+          [item]="item"
+          (toggleWatched)="onToggleWatched($event)"
+          (setRating)="onSetRating($event)"
+        />
+      }
+    </div>
+  }
+
+  <!-- Load More -->
+  @if (items().length > 0) {
+    <div class="catalog__pagination">
+      @if (hasMore) {
+        <button
+          class="catalog__load-more"
+          type="button"
+          [disabled]="isLoading()"
+          (click)="loadMore()"
+        >
+          @if (isLoading()) { Loading... } @else { Load More }
+        </button>
+      }
+      <p class="catalog__count">{{ items().length }} of {{ total() }} titles</p>
+    </div>
+  }
+
+  <!-- Footer Stats -->
+  <footer class="catalog__footer">
+    <div class="catalog__stats">
+      <div class="catalog__stat">
+        <span class="catalog__stat-value catalog__stat-value--red">{{ watchedCount }}</span>
+        <span class="catalog__stat-label">Watched Items</span>
+      </div>
+      <div class="catalog__stat">
+        <span class="catalog__stat-value">{{ total() }}</span>
+        <span class="catalog__stat-label">Total in Library</span>
+      </div>
+    </div>
+    <div class="catalog__footer-divider"></div>
+    <p class="catalog__footer-copy">© 2025 CineTrack. Personal Entertainment Tracker.</p>
+  </footer>
+
+</div>

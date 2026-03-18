@@ -15,6 +15,8 @@ builder.Services.Configure<JwtSettings>(
 builder.Services.AddSingleton<MongoDbService>();
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<MediaService>();
+builder.Services.AddScoped<StatsService>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -1,0 +1,37 @@
+.app-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--color-dark);
+  color: var(--color-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+
+  &.light-mode {
+    --color-text:         #111827;
+    --color-text-muted:   #6b7280;
+    --color-text-subtle:  #9ca3af;
+    --color-surface:      #ffffff;
+    --color-dark:         #f9fafb;
+    --color-border:       rgba(0, 0, 0, 0.09);
+    --color-input-bg:     #f3f4f6;
+    --topbar-bg:          249, 250, 251;
+  }
+}
+
+.app-shell__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-shell__main {
+  flex: 1;
+  overflow-y: auto;
+
+  // Custom scrollbar
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+  &::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
+}
