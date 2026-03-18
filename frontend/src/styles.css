@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  --font-family-sans: 'Inter', sans-serif;
+  --font-family-display: 'Lexend', sans-serif;
+
+  --color-brand-primary: #FF0000;
+  --color-brand-dark: #000000;
+  --color-brand-surface: #0A0A0A;
+  --color-brand-light-bg: #F9FAFB;
+  --color-brand-light-surface: #FFFFFF;
+  --color-brand-light-text: #111827;
+}
+
+.cinematic-bg {
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.95)),
+    url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+  background-size: cover;
+  background-position: center;
+}
+
+.light .cinematic-bg {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.9), rgba(249, 250, 251, 0.95)),
+    url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+  background-size: cover;
+  background-position: center;
+}
+
+.input-focus-ring {
+  transition: all 0.2s ease-in-out;
+}
+
+.input-focus-ring:focus {
+  box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.5);
+}
