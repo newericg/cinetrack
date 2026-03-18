@@ -50,6 +50,25 @@
   background-clip: text;
 }
 
+.sidebar__lang-btn {
+  padding: 4px 8px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-text-subtle);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: var(--transition);
+
+  &:hover {
+    background: rgba(225, 29, 72, 0.1);
+    color: var(--color-primary);
+    border-color: rgba(225, 29, 72, 0.25);
+  }
+}
+
 .sidebar__theme-btn {
   display: flex;
   align-items: center;

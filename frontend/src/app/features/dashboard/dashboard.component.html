@@ -1,0 +1,222 @@
+<div class="dashboard">
+
+  <!-- Header -->
+  <header class="dashboard__header">
+    <div class="dashboard__welcome">
+      <h1 class="dashboard__title">{{ i18n.t().dash_welcome }}, {{ firstName() }}!</h1>
+      <p class="dashboard__subtitle">{{ i18n.t().dash_subtitle }}</p>
+    </div>
+  </header>
+
+  @if (isLoading()) {
+    <div class="dashboard__loading">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  @if (!isLoading() && stats()) {
+    <!-- Stat Pills -->
+    <section class="stat-pills">
+      <div class="stat-pill">
+        <span class="stat-pill__value stat-pill__value--red">{{ stats()!.watchedItems }}</span>
+        <span class="stat-pill__label">{{ i18n.t().stat_watched }}</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-pill__value">{{ stats()!.toWatchItems }}</span>
+        <span class="stat-pill__label">{{ i18n.t().stat_to_watch }}</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-pill__value">{{ stats()!.watchingItems }}</span>
+        <span class="stat-pill__label">{{ i18n.t().stat_watching }}</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-pill__value">{{ stats()!.totalHoursWatched }}</span>
+        <span class="stat-pill__label">{{ i18n.t().stat_hours }}</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-pill__value">{{ stats()!.averageUserRating || '—' }}</span>
+        <span class="stat-pill__label">{{ i18n.t().stat_avg_rating }}</span>
+      </div>
+    </section>
+
+    <!-- Charts Row -->
+    <section class="charts-row">
+
+      <!-- Donut -->
+      <div class="chart-card">
+        <h3 class="chart-card__title">{{ i18n.t().dash_genre_dist }}</h3>
+        <div class="donut-wrapper">
+          <canvas #genreCanvas></canvas>
+          <div class="donut-center">
+            <span class="donut-center__label">{{ i18n.t().dash_total }}</span>
+            <span class="donut-center__value">{{ stats()!.totalItems }}</span>
+          </div>
+        </div>
+        <div class="chart-legend">
+          @for (genre of stats()!.topGenres.slice(0, 3); track genre.genre) {
+            <div class="legend-item">
+              <span class="legend-dot" [style.background]="['#E11D48','#ffffff','#6b7280'][$index]"></span>
+              <span>{{ genre.genre }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Bar Chart -->
+      <div class="chart-card chart-card--wide">
+        <div class="chart-card__header">
+          <h3 class="chart-card__title">{{ i18n.t().dash_monthly }}</h3>
+        </div>
+        <div class="bar-chart-wrapper">
+          <canvas #barCanvas></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Type Stats -->
+    <section class="type-stats">
+      <div class="type-stat">
+        <div class="type-stat__icon type-stat__icon--movies">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+          </svg>
+        </div>
+        <div class="type-stat__info">
+          <span class="type-stat__label">{{ i18n.t().stat_movies }}</span>
+          <span class="type-stat__value">{{ stats()!.watchedMovies }} / {{ stats()!.totalMovies }}</span>
+        </div>
+        <div class="type-stat__bar">
+          <div class="type-stat__fill"
+            [style.width.%]="stats()!.totalMovies ? (stats()!.watchedMovies / stats()!.totalMovies * 100) : 0">
+          </div>
+        </div>
+      </div>
+      <div class="type-stat">
+        <div class="type-stat__icon type-stat__icon--series">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div class="type-stat__info">
+          <span class="type-stat__label">{{ i18n.t().stat_series }}</span>
+          <span class="type-stat__value">{{ stats()!.watchedSeries }} / {{ stats()!.totalSeries }}</span>
+        </div>
+        <div class="type-stat__bar">
+          <div class="type-stat__fill"
+            [style.width.%]="stats()!.totalSeries ? (stats()!.watchedSeries / stats()!.totalSeries * 100) : 0">
+          </div>
+        </div>
+      </div>
+      <div class="type-stat">
+        <div class="type-stat__icon type-stat__icon--anime">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div class="type-stat__info">
+          <span class="type-stat__label">{{ i18n.t().stat_anime }}</span>
+          <span class="type-stat__value">{{ stats()!.watchedAnime }} / {{ stats()!.totalAnime }}</span>
+        </div>
+        <div class="type-stat__bar">
+          <div class="type-stat__fill"
+            [style.width.%]="stats()!.totalAnime ? (stats()!.watchedAnime / stats()!.totalAnime * 100) : 0">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recently Watched -->
+    @if (recentlyWatched().length > 0) {
+      <section class="recent-section">
+        <div class="section-header">
+          <h3 class="section-title">{{ i18n.t().dash_recently }}</h3>
+          <a class="section-link" routerLink="/movies">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
+        <div class="carousel">
+          @for (item of recentlyWatched(); track item.id) {
+            <div class="carousel-item">
+              <div class="carousel-item__poster">
+                <img
+                  [src]="item.posterUrl || posterFallback(item.title)"
+                  [alt]="item.title"
+                  (error)="$any($event.target).src = posterFallback(item.title)"
+                  loading="lazy"
+                />
+                <div class="carousel-item__overlay">
+                  <button class="carousel-item__play" type="button">
+                    <svg fill="white" viewBox="0 0 24 24" width="20" height="20">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="carousel-item__progress">
+                  <div class="carousel-item__progress-bar" style="width: 100%"></div>
+                </div>
+              </div>
+              <h4 class="carousel-item__title">{{ item.title }}</h4>
+              <p class="carousel-item__sub">{{ i18n.t().dash_finished }}</p>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Up Next -->
+    @if (upNext().length > 0) {
+      <section class="up-next-section">
+        <h3 class="section-title">{{ i18n.t().dash_up_next }}</h3>
+        <div class="up-next-grid">
+          @for (item of upNext(); track item.id) {
+            <div class="up-next-card">
+              <div class="up-next-card__thumb">
+                <img
+                  [src]="item.posterUrl || posterFallback(item.title)"
+                  [alt]="item.title"
+                  (error)="$any($event.target).src = posterFallback(item.title)"
+                  loading="lazy"
+                />
+                <div class="up-next-card__play-overlay">
+                  <svg fill="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="up-next-card__info">
+                <p class="up-next-card__type">{{ item.type }}</p>
+                <h4 class="up-next-card__title">{{ item.title }}</h4>
+                <p class="up-next-card__sub">
+                  @if (item.totalEpisodes) {
+                    Ep {{ item.episodesWatched + 1 }} of {{ item.totalEpisodes }}
+                  } @else {
+                    {{ i18n.t().dash_available }}
+                  }
+                </p>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Empty state -->
+    @if (recentlyWatched().length === 0 && upNext().length === 0) {
+      <div class="dashboard__empty">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="56" height="56">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+        </svg>
+        <p>Your library is empty.</p>
+        <a routerLink="/movies" class="dashboard__empty-cta">Add your first item</a>
+      </div>
+    }
+  }
+
+</div>

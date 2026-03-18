@@ -1,0 +1,28 @@
+// Register reuses all login styles - import the shared partial
+@use '../login/login.component' as *;
+
+// Nav actions (lang + theme side by side)
+.login-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lang-btn {
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: var(--transition);
+
+  &:hover {
+    background: rgba(225, 29, 72, 0.12);
+    color: var(--color-primary);
+    border-color: rgba(225, 29, 72, 0.3);
+  }
+}
