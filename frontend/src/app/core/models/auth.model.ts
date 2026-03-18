@@ -2,6 +2,16 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  createdAt?: string;
+  avatarUrl?: string;
+  timezone?: string;
+}
+
+export interface UpdateProfileRequest {
+  name?: string;
+  email?: string;
+  timezone?: string;
+  avatarUrl?: string;
 }
 
 export interface AuthResponse {

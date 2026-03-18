@@ -15,13 +15,16 @@ builder.Services.Configure<JwtSettings>(
 builder.Services.AddSingleton<MongoDbService>();
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<MediaService>();
+builder.Services.AddScoped<CatalogService>();
+builder.Services.AddScoped<UserMediaService>();
 builder.Services.AddScoped<StatsService>();
+builder.Services.AddScoped<AchievementService>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>()!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false; // Preserva "sub" no User.Claims
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -51,13 +54,26 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddHttpClient("Jikan", c =>
+{
+    c.BaseAddress = new Uri("https://api.jikan.moe");
+    c.Timeout = TimeSpan.FromSeconds(10);
+});
+builder.Services.AddSingleton<JikanService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddScoped<DataSeeder>();
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
+
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
+    await seeder.SeedAsync(force: false);
+}
 
 app.UseCors("AllowFrontend");
 app.UseAuthentication();

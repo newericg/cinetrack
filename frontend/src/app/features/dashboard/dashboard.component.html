@@ -142,7 +142,7 @@
         </div>
         <div class="carousel">
           @for (item of recentlyWatched(); track item.id) {
-            <div class="carousel-item">
+            <div class="carousel-item" style="cursor:pointer" [routerLink]="['/media', item.id]">
               <div class="carousel-item__poster">
                 <img
                   [src]="item.posterUrl || posterFallback(item.title)"
@@ -175,7 +175,7 @@
         <h3 class="section-title">{{ i18n.t().dash_up_next }}</h3>
         <div class="up-next-grid">
           @for (item of upNext(); track item.id) {
-            <div class="up-next-card">
+            <div class="up-next-card" style="cursor:pointer" [routerLink]="['/media', item.id]">
               <div class="up-next-card__thumb">
                 <img
                   [src]="item.posterUrl || posterFallback(item.title)"
@@ -206,8 +206,45 @@
       </section>
     }
 
-    <!-- Empty state -->
-    @if (recentlyWatched().length === 0 && upNext().length === 0) {
+    <!-- Browse Catalog (sempre visível para explorar) -->
+    @if (browseCatalog().length > 0) {
+      <section class="recent-section">
+        <div class="section-header">
+          <h3 class="section-title">Browse Catalog</h3>
+          <a class="section-link" routerLink="/movies">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
+        <div class="carousel">
+          @for (item of browseCatalog(); track item.id) {
+            <div class="carousel-item" style="cursor:pointer" [routerLink]="['/media', item.id]">
+              <div class="carousel-item__poster">
+                <img
+                  [src]="item.posterUrl || posterFallback(item.title)"
+                  [alt]="item.title"
+                  (error)="$any($event.target).src = posterFallback(item.title)"
+                  loading="lazy"
+                />
+                <div class="carousel-item__overlay">
+                  <button class="carousel-item__play" type="button">
+                    <svg fill="white" viewBox="0 0 24 24" width="20" height="20">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <h4 class="carousel-item__title">{{ item.title }}</h4>
+              <p class="carousel-item__sub">{{ item.year }} • {{ item.type }}</p>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Empty state (quando lista vazia e sem catálogo) -->
+    @if (recentlyWatched().length === 0 && upNext().length === 0 && browseCatalog().length === 0) {
       <div class="dashboard__empty">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="56" height="56">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"

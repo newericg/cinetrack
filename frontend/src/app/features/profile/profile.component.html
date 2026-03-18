@@ -1,0 +1,304 @@
+<div class="profile">
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="profile__loading">
+      <div class="spinner"></div>
+    </div>
+  } @else {
+
+  <!-- ── User Header ───────────────────────────────────────────── -->
+  <header class="profile__header">
+    <div class="profile__avatar-wrap">
+      @if (hasAvatar()) {
+        <img
+          class="profile__avatar profile__avatar--img"
+          [src]="user()?.avatarUrl"
+          [alt]="user()?.name"
+        />
+      } @else {
+        <div class="profile__avatar profile__avatar--letter">
+          {{ avatarLetter() }}
+        </div>
+      }
+      <button class="profile__avatar-btn" type="button" aria-label="Change avatar">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="14" height="14">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="profile__identity">
+      <h1 class="profile__name">{{ user()?.name }}</h1>
+      <p class="profile__email">{{ user()?.email }}</p>
+      <div class="profile__badges">
+        <span class="badge badge--primary">Pro Member</span>
+        @if (joinedDate()) {
+          <span class="badge badge--muted">Joined {{ joinedDate() }}</span>
+        }
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Watch Time Summary ────────────────────────────────────── -->
+  <section class="profile__stats-grid">
+
+    <!-- Total Watch Time -->
+    <div class="stat-card">
+      <div class="stat-card__body">
+        <p class="stat-card__label">Total Watch Time</p>
+        <div class="stat-card__value">
+          <span class="stat-card__num">{{ watchDays() }}</span>
+          <span class="stat-card__unit">Days</span>
+          <span class="stat-card__num stat-card__num--ml">{{ watchHours() }}</span>
+          <span class="stat-card__unit">Hours</span>
+        </div>
+      </div>
+      <svg class="stat-card__icon" fill="currentColor" viewBox="0 0 20 20">
+        <path clip-rule="evenodd" fill-rule="evenodd"
+          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/>
+      </svg>
+    </div>
+
+    <!-- Activity Breakdown -->
+    <div class="stat-card">
+      <p class="stat-card__label">Activity Breakdown</p>
+      <div class="stat-card__bars">
+        <div class="progress-row">
+          <div class="progress-row__header">
+            <span>Movies</span>
+            <span>{{ moviePercent() }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill progress-fill--primary"
+              [style.width.%]="moviePercent()"></div>
+          </div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-row__header">
+            <span>Series &amp; Anime</span>
+            <span>{{ seriesPercent() }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill progress-fill--muted"
+              [style.width.%]="seriesPercent()"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── Settings Tabs ─────────────────────────────────────────── -->
+  <section class="profile__tabs-card">
+
+    <!-- Tab Nav -->
+    <nav class="tabs-nav" aria-label="Settings tabs">
+      <button class="tabs-nav__btn" [class.tabs-nav__btn--active]="activeTab() === 'account'"
+        type="button" (click)="setTab('account')">Account</button>
+      <button class="tabs-nav__btn" [class.tabs-nav__btn--active]="activeTab() === 'notifications'"
+        type="button" (click)="setTab('notifications')">Notifications</button>
+      <button class="tabs-nav__btn" [class.tabs-nav__btn--active]="activeTab() === 'privacy'"
+        type="button" (click)="setTab('privacy')">Privacy</button>
+      <button class="tabs-nav__btn" [class.tabs-nav__btn--active]="activeTab() === 'services'"
+        type="button" (click)="setTab('services')">Connected Services</button>
+    </nav>
+
+    <!-- ── Account Tab ── -->
+    @if (activeTab() === 'account') {
+      <div class="tab-content">
+        <h2 class="tab-content__title">Account Settings</h2>
+
+        <form [formGroup]="profileForm" (ngSubmit)="onSave()" class="settings-form">
+          <div class="settings-form__grid">
+            <div class="field">
+              <label class="field__label" for="fullName">Full Name</label>
+              <input
+                class="field__input"
+                id="fullName"
+                type="text"
+                formControlName="name"
+                placeholder="Your name"
+              />
+              @if (profileForm.get('name')?.invalid && profileForm.get('name')?.touched) {
+                <p class="field__error">Name is required.</p>
+              }
+            </div>
+            <div class="field">
+              <label class="field__label" for="email">Email Address</label>
+              <input
+                class="field__input"
+                id="email"
+                type="email"
+                formControlName="email"
+                placeholder="you@example.com"
+              />
+              @if (profileForm.get('email')?.invalid && profileForm.get('email')?.touched) {
+                <p class="field__error">A valid email is required.</p>
+              }
+            </div>
+          </div>
+
+          <div class="field field--narrow">
+            <label class="field__label" for="timezone">Timezone</label>
+            <select class="field__input" id="timezone" formControlName="timezone">
+              <option value="">Select timezone…</option>
+              <option value="America/Los_Angeles">Pacific Time (PT) – Los Angeles</option>
+              <option value="America/New_York">Eastern Time (ET) – New York</option>
+              <option value="America/Chicago">Central Time (CT) – Chicago</option>
+              <option value="America/Denver">Mountain Time (MT) – Denver</option>
+              <option value="Europe/London">Greenwich Mean Time (GMT) – London</option>
+              <option value="Europe/Paris">Central European Time (CET) – Paris</option>
+              <option value="Europe/Lisbon">Western European Time (WET) – Lisbon</option>
+              <option value="America/Sao_Paulo">Brasília Time (BRT) – São Paulo</option>
+              <option value="Asia/Tokyo">Japan Standard Time (JST) – Tokyo</option>
+              <option value="Asia/Shanghai">China Standard Time (CST) – Shanghai</option>
+            </select>
+          </div>
+
+          <hr class="settings-form__divider" />
+
+          <!-- Danger Zone -->
+          <div class="danger-zone">
+            <h3 class="danger-zone__title">Danger Zone</h3>
+            <p class="danger-zone__desc">
+              Once you delete your account, there is no going back. Please be certain.
+            </p>
+            <button class="btn btn--danger-outline" type="button">Delete Account</button>
+          </div>
+
+          <!-- Feedback messages -->
+          @if (saveSuccess()) {
+            <div class="alert alert--success">Changes saved successfully.</div>
+          }
+          @if (saveError()) {
+            <div class="alert alert--error">{{ saveError() }}</div>
+          }
+
+          <!-- Actions -->
+          <div class="settings-form__actions">
+            <button class="btn btn--ghost" type="button" (click)="onCancel()">Cancel</button>
+            <button class="btn btn--primary" type="submit" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <span class="btn__spinner"></span>
+                Saving…
+              } @else {
+                Save Changes
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- ── Notifications Tab ── -->
+    @if (activeTab() === 'notifications') {
+      <div class="tab-content">
+        <h2 class="tab-content__title">Notification Preferences</h2>
+        <div class="toggle-list">
+          <div class="toggle-item">
+            <div>
+              <p class="toggle-item__label">New releases in my watchlist</p>
+              <p class="toggle-item__desc">Get notified when a title you saved becomes available.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked />
+              <span class="toggle-switch__track"></span>
+            </label>
+          </div>
+          <div class="toggle-item">
+            <div>
+              <p class="toggle-item__label">Weekly watch summary</p>
+              <p class="toggle-item__desc">A digest of your viewing activity every Sunday.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" />
+              <span class="toggle-switch__track"></span>
+            </label>
+          </div>
+          <div class="toggle-item">
+            <div>
+              <p class="toggle-item__label">Product updates</p>
+              <p class="toggle-item__desc">News about new CineTrack features and improvements.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked />
+              <span class="toggle-switch__track"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ── Privacy Tab ── -->
+    @if (activeTab() === 'privacy') {
+      <div class="tab-content">
+        <h2 class="tab-content__title">Privacy Settings</h2>
+        <div class="toggle-list">
+          <div class="toggle-item">
+            <div>
+              <p class="toggle-item__label">Public profile</p>
+              <p class="toggle-item__desc">Let other users see your watchlist and stats.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" />
+              <span class="toggle-switch__track"></span>
+            </label>
+          </div>
+          <div class="toggle-item">
+            <div>
+              <p class="toggle-item__label">Show watch history</p>
+              <p class="toggle-item__desc">Display what you've recently watched on your profile.</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked />
+              <span class="toggle-switch__track"></span>
+            </label>
+          </div>
+        </div>
+        <p class="tab-content__note">
+          Data is stored securely and never shared with third parties without your consent.
+        </p>
+      </div>
+    }
+
+    <!-- ── Connected Services Tab ── -->
+    @if (activeTab() === 'services') {
+      <div class="tab-content">
+        <h2 class="tab-content__title">Connected Services</h2>
+        <div class="service-list">
+          <div class="service-item">
+            <div class="service-item__icon service-item__icon--netflix">N</div>
+            <div class="service-item__info">
+              <p class="service-item__name">Netflix</p>
+              <p class="service-item__status service-item__status--disconnected">Not connected</p>
+            </div>
+            <button class="btn btn--outline-sm" type="button">Connect</button>
+          </div>
+          <div class="service-item">
+            <div class="service-item__icon service-item__icon--prime">P</div>
+            <div class="service-item__info">
+              <p class="service-item__name">Prime Video</p>
+              <p class="service-item__status service-item__status--disconnected">Not connected</p>
+            </div>
+            <button class="btn btn--outline-sm" type="button">Connect</button>
+          </div>
+          <div class="service-item">
+            <div class="service-item__icon service-item__icon--disney">D+</div>
+            <div class="service-item__info">
+              <p class="service-item__name">Disney+</p>
+              <p class="service-item__status service-item__status--disconnected">Not connected</p>
+            </div>
+            <button class="btn btn--outline-sm" type="button">Connect</button>
+          </div>
+        </div>
+      </div>
+    }
+
+  </section>
+
+  } <!-- end @if (!isLoading()) -->
+</div>

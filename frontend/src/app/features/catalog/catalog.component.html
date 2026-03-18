@@ -4,6 +4,22 @@
   <section class="catalog__filters">
     <div class="catalog__filters-row">
 
+      <!-- View mode: Catalog (all) | My List -->
+      <div class="filter-pills">
+        <button
+          class="filter-pill"
+          [class.filter-pill--active]="viewMode() === 'catalog'"
+          type="button"
+          (click)="setViewMode('catalog')"
+        >All Catalog</button>
+        <button
+          class="filter-pill"
+          [class.filter-pill--active]="viewMode() === 'mylist'"
+          type="button"
+          (click)="setViewMode('mylist')"
+        >My List</button>
+      </div>
+
       <!-- Type pills (only on "All" page) -->
       @if (!mediaType()) {
         <div class="filter-pills">
@@ -27,13 +43,15 @@
           }
         </select>
 
-        <select class="filter-select" [value]="selectedStatus()" (change)="onStatusChange($any($event.target).value)">
-          <option value="">Status: All</option>
-          <option value="Watched">Watched</option>
-          <option value="ToWatch">To Watch</option>
-          <option value="Watching">Watching</option>
-          <option value="Dropped">Dropped</option>
-        </select>
+        @if (viewMode() === 'mylist') {
+          <select class="filter-select" [value]="selectedStatus()" (change)="onStatusChange($any($event.target).value)">
+            <option value="">Status: All</option>
+            <option value="Watched">Watched</option>
+            <option value="ToWatch">To Watch</option>
+            <option value="Watching">Watching</option>
+            <option value="Dropped">Dropped</option>
+          </select>
+        }
       </div>
     </div>
   </section>
@@ -65,6 +83,8 @@
       @for (item of items(); track item.id) {
         <app-media-card
           [item]="item"
+          (addToList)="onAddToList($event)"
+          (removeFromList)="onRemoveFromList($event)"
           (toggleWatched)="onToggleWatched($event)"
           (setRating)="onSetRating($event)"
         />

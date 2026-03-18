@@ -5,35 +5,34 @@ namespace CineTrack.API.Services;
 
 public class StatsService
 {
-    private readonly MediaService _mediaService;
+    private readonly UserMediaService _userMediaService;
 
-    public StatsService(MediaService mediaService)
+    public StatsService(UserMediaService userMediaService)
     {
-        _mediaService = mediaService;
+        _userMediaService = userMediaService;
     }
 
     public async Task<StatsResponse> GetStatsAsync(string userId)
     {
-        var all = await _mediaService.GetRawByUserAsync(userId);
+        var all = await _userMediaService.GetRawByUserAsync(userId);
 
-        var watched = all.Where(x => x.IsWatched).ToList();
-        var movies = all.Where(x => x.Type == MediaType.Movie).ToList();
-        var series = all.Where(x => x.Type == MediaType.Series).ToList();
-        var anime = all.Where(x => x.Type == MediaType.Anime).ToList();
+        var watched = all.Where(x => x.User.IsWatched).ToList();
+        var movies = all.Where(x => x.Catalog.Type == MediaType.Movie).ToList();
+        var series = all.Where(x => x.Catalog.Type == MediaType.Series).ToList();
+        var anime = all.Where(x => x.Catalog.Type == MediaType.Anime).ToList();
 
         var totalMinutes = watched.Sum(x =>
         {
-            if (x.Type == MediaType.Movie)
-                return x.DurationMinutes ?? 0;
-
-            return (x.TotalEpisodes ?? x.EpisodesWatched) * 24;
+            if (x.Catalog.Type == MediaType.Movie)
+                return x.Catalog.DurationMinutes ?? 0;
+            return (x.Catalog.TotalEpisodes ?? x.User.EpisodesWatched) * 24;
         });
 
-        var ratings = all.Where(x => x.UserRating.HasValue).Select(x => x.UserRating!.Value).ToList();
+        var ratings = all.Where(x => x.User.UserRating.HasValue).Select(x => x.User.UserRating!.Value).ToList();
         var avgRating = ratings.Count > 0 ? Math.Round(ratings.Average(), 1) : 0;
 
         var topGenres = all
-            .SelectMany(x => x.Genres)
+            .SelectMany(x => x.Catalog.Genres)
             .GroupBy(g => g)
             .OrderByDescending(g => g.Count())
             .Take(10)
@@ -41,8 +40,8 @@ public class StatsService
             .ToList();
 
         var watchedByMonth = watched
-            .Where(x => x.WatchedAt.HasValue)
-            .GroupBy(x => x.WatchedAt!.Value.ToString("yyyy-MM"))
+            .Where(x => x.User.WatchedAt.HasValue)
+            .GroupBy(x => x.User.WatchedAt!.Value.ToString("yyyy-MM"))
             .OrderBy(g => g.Key)
             .TakeLast(12)
             .Select(g => new MonthStat(g.Key, g.Count()))
@@ -51,15 +50,15 @@ public class StatsService
         return new StatsResponse(
             TotalItems: all.Count,
             WatchedItems: watched.Count,
-            ToWatchItems: all.Count(x => x.Status == WatchStatus.ToWatch),
-            WatchingItems: all.Count(x => x.Status == WatchStatus.Watching),
-            DroppedItems: all.Count(x => x.Status == WatchStatus.Dropped),
+            ToWatchItems: all.Count(x => x.User.Status == WatchStatus.ToWatch),
+            WatchingItems: all.Count(x => x.User.Status == WatchStatus.Watching),
+            DroppedItems: all.Count(x => x.User.Status == WatchStatus.Dropped),
             TotalMovies: movies.Count,
-            WatchedMovies: movies.Count(x => x.IsWatched),
+            WatchedMovies: movies.Count(x => x.User.IsWatched),
             TotalSeries: series.Count,
-            WatchedSeries: series.Count(x => x.IsWatched),
+            WatchedSeries: series.Count(x => x.User.IsWatched),
             TotalAnime: anime.Count,
-            WatchedAnime: anime.Count(x => x.IsWatched),
+            WatchedAnime: anime.Count(x => x.User.IsWatched),
             TotalHoursWatched: totalMinutes / 60,
             AverageUserRating: avgRating,
             TopGenres: topGenres,

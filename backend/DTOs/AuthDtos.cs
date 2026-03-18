@@ -27,5 +27,15 @@ public record AuthResponse(
 public record UserDto(
     string Id,
     string Name,
-    string Email
+    string Email,
+    DateTime CreatedAt,
+    string? AvatarUrl = null,
+    string? Timezone = null
+);
+
+public record UpdateProfileRequest(
+    string? Name,
+    string? Email,
+    string? Timezone,
+    string? AvatarUrl
 );

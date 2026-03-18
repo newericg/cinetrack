@@ -65,6 +65,8 @@ const translations = {
     cat_empty_sub: 'Try adjusting your filters.',
     cat_of: 'of',
     cat_titles: 'titles',
+    // Achievements
+    nav_achievements: 'Achievements',
     // Misc
     logout: 'Logout',
     theme_toggle: 'Toggle theme',
@@ -127,6 +129,7 @@ const translations = {
     cat_empty_sub: 'Tente ajustar os filtros.',
     cat_of: 'de',
     cat_titles: 'títulos',
+    nav_achievements: 'Conquistas',
     logout: 'Sair',
     theme_toggle: 'Alternar tema',
     lang_toggle: 'EN',

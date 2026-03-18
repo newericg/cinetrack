@@ -1,0 +1,158 @@
+<div class="achievements">
+  <!-- Header -->
+  <header class="achievements__header">
+    <div class="achievements__search-wrap">
+      <svg class="achievements__search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+      </svg>
+      <input
+        class="achievements__search"
+        type="text"
+        placeholder="Search achievements..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearch($event)"
+      />
+    </div>
+    <div class="achievements__xp">
+      <svg fill="currentColor" viewBox="0 0 24 24" width="16" height="16">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+      </svg>
+      <span>XP Earned</span>
+    </div>
+  </header>
+
+  <div class="achievements__body">
+    <!-- Title -->
+    <div class="achievements__title-block">
+      <h1 class="achievements__title">Achievements</h1>
+      <p class="achievements__subtitle">Your cinematic milestones and badges. Keep watching to unlock more!</p>
+    </div>
+
+    <!-- Category tabs -->
+    <div class="achievements__tabs">
+      @for (tab of categories; track tab.value) {
+        <button
+          class="achievements__tab"
+          [class.achievements__tab--active]="activeCategory() === tab.value"
+          type="button"
+          (click)="setCategory(tab.value)"
+        >
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    <!-- Loading -->
+    @if (isLoading()) {
+      <div class="achievements__loading">
+        <div class="achievements__spinner"></div>
+        <span>Loading achievements...</span>
+      </div>
+    }
+
+    <!-- Grid -->
+    @if (!isLoading()) {
+      <div class="achievements__grid">
+        @for (achievement of filteredAchievements(); track achievement.id) {
+          <div
+            class="achievement-card"
+            [class.achievement-card--completed]="achievement.isCompleted"
+            [class.achievement-card--locked]="achievement.isLocked"
+          >
+            <!-- Completed badge -->
+            @if (achievement.isCompleted) {
+              <div class="achievement-card__check-corner">
+                <svg fill="currentColor" viewBox="0 0 24 24" width="14" height="14">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5l-4-4 1.41-1.41L10 13.67l6.59-6.59L18 8.5l-8 8z"/>
+                </svg>
+              </div>
+            }
+
+            <!-- Lock icon -->
+            @if (achievement.isLocked) {
+              <div class="achievement-card__lock">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              </div>
+            }
+
+            <!-- Icon -->
+            <div class="achievement-card__icon-wrap" [class.achievement-card__icon-wrap--active]="achievement.isCompleted && !achievement.isLocked">
+              <span class="achievement-card__icon material-symbols-outlined">{{ achievement.icon }}</span>
+              @if (achievement.level && achievement.isCompleted) {
+                <span class="achievement-card__level">Lv. {{ achievement.level }}</span>
+              }
+            </div>
+
+            <!-- Info -->
+            <h3 class="achievement-card__name">{{ achievement.name }}</h3>
+            <p class="achievement-card__desc">{{ achievement.description }}</p>
+
+            <!-- Progress -->
+            <div class="achievement-card__progress">
+              <div class="achievement-card__progress-labels">
+                <span class="achievement-card__current" [class.achievement-card__current--locked]="achievement.isLocked">
+                  {{ currentLabel(achievement) }}
+                </span>
+                <span
+                  class="achievement-card__pct"
+                  [class.achievement-card__pct--done]="achievement.isCompleted"
+                  [class.achievement-card__pct--locked]="achievement.isLocked"
+                >
+                  {{ progressLabel(achievement) }}
+                </span>
+              </div>
+              <div class="achievement-card__bar">
+                <div
+                  class="achievement-card__bar-fill"
+                  [class.achievement-card__bar-fill--locked]="achievement.isLocked"
+                  [style.width.%]="achievement.isLocked ? 0 : achievement.progressPercent"
+                ></div>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (filteredAchievements().length === 0 && !isLoading()) {
+          <div class="achievements__empty">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="48" height="48">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p>No achievements found.</p>
+            <span>Try a different category or search term.</span>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Footer banner -->
+    @if (data(); as stats) {
+      <div class="achievements__banner">
+        <div class="achievements__banner-text">
+          <h4 class="achievements__banner-title">Badge Collection Progress</h4>
+          <p class="achievements__banner-sub">
+            You've unlocked {{ stats.totalUnlocked }} out of {{ stats.totalAchievements }} total achievements.
+          </p>
+        </div>
+        <div class="achievements__banner-stats">
+          <div class="achievements__banner-stat">
+            <span class="achievements__banner-num">{{ stats.totalUnlocked }}</span>
+            <span class="achievements__banner-label">Unlocked</span>
+          </div>
+          <div class="achievements__banner-stat">
+            <span class="achievements__banner-num">{{ stats.rarestCount }}</span>
+            <span class="achievements__banner-label">Rarest</span>
+          </div>
+          <div class="achievements__banner-stat">
+            <span class="achievements__banner-num">{{ stats.completionPercent }}%</span>
+            <span class="achievements__banner-label">Complete</span>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

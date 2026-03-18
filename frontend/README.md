@@ -1,59 +1,142 @@
-# CinetrackFrontend
+# CineTrack — Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.2.
+Angular 21 SPA (Single Page Application) for CineTrack. Built with standalone components, Angular Signals for reactive state, Tailwind CSS v4, and Chart.js for data visualization. Supports English and Portuguese (BR).
 
-## Development server
+## Tech Stack
 
-To start a local development server, run:
+| Concern | Technology |
+|---|---|
+| Framework | Angular 21 (standalone components, no NgModules) |
+| State | Angular Signals (`signal`, `computed`) |
+| HTTP | Angular `HttpClient` + functional `authInterceptor` |
+| Styling | Tailwind CSS v4 + custom SCSS |
+| Charts | Chart.js 4 |
+| Testing | Vitest |
+| i18n | Custom built-in service (EN / PT-BR, zero dependencies) |
 
-```bash
-ng serve
+## Project Structure
+
+```
+frontend/
+├── src/
+│   ├── app/
+│   │   ├── app.ts                    # Root component
+│   │   ├── app.config.ts             # provideRouter, provideHttpClient
+│   │   ├── app.routes.ts             # All application routes
+│   │   ├── core/
+│   │   │   ├── guards/
+│   │   │   │   └── auth.guard.ts     # authGuard + guestGuard (functional)
+│   │   │   ├── interceptors/
+│   │   │   │   └── auth.interceptor.ts  # Attaches Bearer token; auto-refreshes on 401
+│   │   │   ├── models/
+│   │   │   │   ├── auth.model.ts
+│   │   │   │   ├── media.model.ts
+│   │   │   │   └── achievement.model.ts
+│   │   │   └── services/
+│   │   │       ├── auth.service.ts       # Login, register, refresh, profile; Signal-based currentUser
+│   │   │       ├── media.service.ts      # Catalog queries + personal list CRUD
+│   │   │       ├── stats.service.ts      # GET /api/stats
+│   │   │       ├── achievement.service.ts # GET /api/achievements
+│   │   │       └── i18n.service.ts       # EN / PT-BR translation service
+│   │   ├── features/
+│   │   │   ├── auth/
+│   │   │   │   ├── login/            # LoginComponent
+│   │   │   │   └── register/         # RegisterComponent
+│   │   │   ├── catalog/
+│   │   │   │   ├── catalog.component.*   # Shared for /movies, /series, /anime
+│   │   │   │   └── components/media-card/  # MediaCardComponent
+│   │   │   ├── dashboard/            # DashboardComponent (stats + charts + lists)
+│   │   │   ├── media-detail/         # MediaDetailComponent (/media/:id)
+│   │   │   ├── achievements/         # AchievementsComponent
+│   │   │   └── profile/              # ProfileComponent
+│   │   └── layout/
+│   │       ├── main-layout/          # Authenticated shell (sidebar + router-outlet)
+│   │       ├── sidebar/              # Nav, theme toggle, language toggle, logout
+│   │       └── topbar/               # Top bar
+│   ├── environments/
+│   │   ├── environment.ts            # apiUrl: http://localhost:5240/api
+│   │   └── environment.prod.ts       # apiUrl: Railway production URL
+│   ├── index.html
+│   └── styles.scss                   # Global styles + Tailwind imports
+├── angular.json
+├── package.json
+├── tsconfig.json
+└── tsconfig.app.json
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Routes
 
-## Code scaffolding
+| Path | Component | Guard |
+|---|---|---|
+| `/login` | `LoginComponent` | `guestGuard` |
+| `/register` | `RegisterComponent` | `guestGuard` |
+| `/dashboard` | `DashboardComponent` | `authGuard` |
+| `/movies` | `CatalogComponent` (type: Movie) | `authGuard` |
+| `/series` | `CatalogComponent` (type: Series) | `authGuard` |
+| `/anime` | `CatalogComponent` (type: Anime) | `authGuard` |
+| `/achievements` | `AchievementsComponent` | `authGuard` |
+| `/profile` | `ProfileComponent` | `authGuard` |
+| `/media/:id` | `MediaDetailComponent` | `authGuard` |
+| `**` | → `/login` | — |
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Prerequisites
 
-```bash
-ng generate component component-name
-```
+- [Node.js 22+](https://nodejs.org/) and npm
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Local Setup
 
 ```bash
-ng test
+cd frontend
+npm install
+npm start
+# App: http://localhost:4200
+# Expects the backend running at http://localhost:5240
 ```
 
-## Running end-to-end tests
+The API URL is configured in `src/environments/environment.ts`. Change it there if your backend runs on a different port.
 
-For end-to-end (e2e) testing, run:
+## Available Scripts
+
+| Command | Description |
+|---|---|
+| `npm start` | Start dev server (`ng serve`) |
+| `npm run build` | Production build (`ng build --configuration production`) |
+| `npm test` | Run unit tests with Vitest |
+| `npm run watch` | Build in watch mode |
+
+## Key Architecture Patterns
+
+### Angular Signals
+
+All reactive state uses Angular Signals. Services expose `signal()` and `computed()` values rather than RxJS `BehaviorSubject`. Example in `AuthService`:
+
+```typescript
+private _currentUser = signal<UserDto | null>(null);
+readonly currentUser = this._currentUser.asReadonly();
+readonly isAuthenticated = computed(() => this._currentUser() !== null);
+```
+
+### Auth Interceptor
+
+The `authInterceptor` in `core/interceptors/auth.interceptor.ts`:
+1. Attaches `Authorization: Bearer <accessToken>` to every outgoing request.
+2. On a **401** response, automatically calls `POST /api/auth/refresh`.
+3. Retries the original request with the new token.
+4. Falls back to `logout()` if the refresh also fails.
+
+### i18n Service
+
+`I18nService` is a zero-dependency translation service that stores the selected language in `localStorage`. Toggle between **English** and **Portuguese (BR)** via the sidebar button. All UI labels are sourced from a typed dictionary inside the service.
+
+### Catalog Component
+
+`CatalogComponent` is reused across `/movies`, `/series`, and `/anime` routes. The active `MediaType` is injected via Angular route data (`data: { type: 'Movie' }`), so a single component handles all three content types with filtering, pagination, and status management.
+
+## Production Build
 
 ```bash
-ng e2e
+npm run build
+# Output in dist/cinetrack/browser/
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Configure `src/environments/environment.prod.ts` with the Railway (or other) backend URL before building for production.

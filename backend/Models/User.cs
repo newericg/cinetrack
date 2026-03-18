@@ -18,6 +18,12 @@ public class User
     [BsonElement("passwordHash")]
     public string PasswordHash { get; set; } = null!;
 
+    [BsonElement("avatarUrl")]
+    public string? AvatarUrl { get; set; }
+
+    [BsonElement("timezone")]
+    public string? Timezone { get; set; }
+
     [BsonElement("refreshToken")]
     public string? RefreshToken { get; set; }
 

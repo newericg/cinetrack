@@ -91,15 +91,18 @@
 }
 
 // ---- Grid ----
+// align-items:start prevents the grid from stretching cells to row height,
+// which would conflict with the card's own aspect-ratio sizing.
 .catalog__grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  align-items: start;
   gap: 20px;
 
   @media (min-width: 480px)  { grid-template-columns: repeat(3, 1fr); }
   @media (min-width: 768px)  { grid-template-columns: repeat(4, 1fr); }
-  @media (min-width: 1024px) { grid-template-columns: repeat(5, 1fr); }
-  @media (min-width: 1280px) { grid-template-columns: repeat(6, 1fr); }
+  @media (min-width: 1024px) { grid-template-columns: repeat(4, 1fr); }
+  @media (min-width: 1280px) { grid-template-columns: repeat(4, 1fr); }
 }
 
 // ---- Skeleton ----

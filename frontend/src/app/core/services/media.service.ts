@@ -2,7 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import {
-  CreateMediaRequest,
+  AddToListRequest,
+  CatalogQueryParams,
   MediaItem,
   MediaQueryParams,
   PagedResponse,
@@ -11,9 +12,32 @@ import {
 @Injectable({ providedIn: 'root' })
 export class MediaService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/media`;
+  private readonly apiUrl = environment.apiUrl;
 
-  getAll(query: MediaQueryParams = {}) {
+  /** Catálogo global — todos veem. Se autenticado, inclui overlay (status, rating). */
+  getCatalog(query: CatalogQueryParams = {}) {
+    let params = new HttpParams();
+    if (query.type) params = params.set('type', query.type);
+    if (query.genre) params = params.set('genre', query.genre);
+    if (query.search) params = params.set('search', query.search);
+    if (query.sortBy) params = params.set('sortBy', query.sortBy);
+    if (query.sortOrder) params = params.set('sortOrder', query.sortOrder);
+    if (query.page) params = params.set('page', query.page.toString());
+    if (query.limit) params = params.set('limit', query.limit.toString());
+
+    return this.http.get<PagedResponse<MediaItem>>(`${this.apiUrl}/catalog`, { params });
+  }
+
+  getCatalogItem(id: string) {
+    return this.http.get<MediaItem>(`${this.apiUrl}/catalog/${id}`);
+  }
+
+  getCatalogGenres() {
+    return this.http.get<string[]>(`${this.apiUrl}/catalog/genres`);
+  }
+
+  /** Lista individual do usuário (itens que adicionou). */
+  getMyList(query: MediaQueryParams = {}) {
     let params = new HttpParams();
     if (query.type) params = params.set('type', query.type);
     if (query.genre) params = params.set('genre', query.genre);
@@ -24,38 +48,28 @@ export class MediaService {
     if (query.page) params = params.set('page', query.page.toString());
     if (query.limit) params = params.set('limit', query.limit.toString());
 
-    return this.http.get<PagedResponse<MediaItem>>(this.apiUrl, { params });
+    return this.http.get<PagedResponse<MediaItem>>(`${this.apiUrl}/media`, { params });
   }
 
-  getById(id: string) {
-    return this.http.get<MediaItem>(`${this.apiUrl}/${id}`);
+  addToList(request: AddToListRequest) {
+    return this.http.post<MediaItem>(`${this.apiUrl}/media`, request);
   }
 
-  getGenres() {
-    return this.http.get<string[]>(`${this.apiUrl}/genres`);
+  removeFromList(catalogItemId: string) {
+    return this.http.delete<void>(`${this.apiUrl}/media/${catalogItemId}`);
   }
 
-  create(request: CreateMediaRequest) {
-    return this.http.post<MediaItem>(this.apiUrl, request);
+  toggleWatched(catalogItemId: string) {
+    return this.http.patch<MediaItem>(`${this.apiUrl}/media/${catalogItemId}/watched`, {});
   }
 
-  update(id: string, request: Partial<CreateMediaRequest>) {
-    return this.http.put<MediaItem>(`${this.apiUrl}/${id}`, request);
+  setRating(catalogItemId: string, userRating: number) {
+    return this.http.patch<MediaItem>(`${this.apiUrl}/media/${catalogItemId}/rating`, { userRating });
   }
 
-  delete(id: string) {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
-  }
-
-  toggleWatched(id: string) {
-    return this.http.patch<MediaItem>(`${this.apiUrl}/${id}/watched`, {});
-  }
-
-  setRating(id: string, userRating: number) {
-    return this.http.patch<MediaItem>(`${this.apiUrl}/${id}/rating`, { userRating });
-  }
-
-  setEpisodes(id: string, episodesWatched: number) {
-    return this.http.patch<MediaItem>(`${this.apiUrl}/${id}/episodes`, { episodesWatched });
+  setEpisodes(catalogItemId: string, episodesWatched: number) {
+    return this.http.patch<MediaItem>(`${this.apiUrl}/media/${catalogItemId}/episodes`, {
+      episodesWatched,
+    });
   }
 }

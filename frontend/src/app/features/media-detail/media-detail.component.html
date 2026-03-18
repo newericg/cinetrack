@@ -1,0 +1,275 @@
+@if (isLoading()) {
+  <div class="detail-loading">
+    <div class="spinner"></div>
+  </div>
+} @else if (item()) {
+  <div class="detail">
+
+    <!-- ── Hero Banner ─────────────────────────────── -->
+    <div class="detail__hero" [class.detail__hero--no-backdrop]="!heroImage()">
+      @if (heroImage()) {
+        <img
+          class="detail__backdrop"
+          [src]="heroImage()!"
+          [alt]="item()!.title"
+          (error)="$any($event.target).src = posterFallback"
+        />
+      }
+      <div class="detail__hero-grad"></div>
+      <div class="detail__hero-side-grad"></div>
+
+      <div class="detail__hero-content">
+        <div class="detail__hero-meta">
+          <span class="detail__status-badge" [class.detail__status-badge--watched]="item()!.isWatched">
+            {{ item()!.isWatched ? 'Watched' : item()!.status }}
+          </span>
+          @if (item()!.rating) {
+            <div class="detail__hero-rating">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <span>{{ item()!.rating }}</span>
+            </div>
+          }
+          <span class="detail__hero-info">
+            {{ item()!.year }}
+            @if (item()!.genres.length > 0) { • {{ item()!.genres[0] }} }
+            @if (formattedDuration()) { • {{ formattedDuration() }} }
+            @if (item()!.totalEpisodes) { • {{ item()!.totalEpisodes }} eps }
+          </span>
+        </div>
+
+        <h1 class="detail__title">{{ item()!.title }}</h1>
+
+        <div class="detail__hero-actions">
+          @if (item()!.trailerUrl) {
+            <button class="detail__btn detail__btn--primary" (click)="onOpenTrailer()">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
+              Watch Trailer
+            </button>
+          }
+          @if (item()!.inUserList) {
+            <button
+              class="detail__btn detail__btn--ghost"
+              [class.detail__btn--active]="item()!.isWatched"
+              [disabled]="isTogglingWatched()"
+              (click)="onToggleWatched()"
+            >
+              @if (item()!.isWatched) {
+                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                Watched
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Mark as Watched
+              }
+            </button>
+            <button
+              class="detail__btn-icon"
+              [class.detail__btn-icon--active]="(item()!.userRating ?? 0) > 0"
+              title="Rate this"
+              (click)="toggleRatingInput()"
+            >
+              <svg viewBox="0 0 24 24" [attr.fill]="(item()!.userRating ?? 0) > 0 ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" width="20" height="20">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+              </svg>
+            </button>
+          } @else {
+            <button class="detail__btn detail__btn--ghost" (click)="onAddToList()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+              Add to My List
+            </button>
+          }
+        </div>
+
+        @if (showRatingInput()) {
+          <div class="detail__rating-picker">
+            <span class="detail__rating-picker-label">Your Rating:</span>
+            <div class="detail__stars">
+              @for (s of stars; track s) {
+                <button
+                  class="detail__star"
+                  [class.detail__star--active]="s <= userRatingInput()"
+                  (click)="onSetRating(s)"
+                >★</button>
+              }
+            </div>
+            @if (userRatingInput() > 0) {
+              <span class="detail__rating-value">{{ userRatingInput() }}/10</span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ── Content Grid ─────────────────────────────── -->
+    <div class="detail__grid">
+
+      <!-- ── Left Column ──────────────────────────── -->
+      <div class="detail__main">
+
+        <!-- Synopsis -->
+        @if (item()!.synopsis) {
+          <section class="detail__section">
+            <h2 class="detail__section-title">Synopsis</h2>
+            <p class="detail__synopsis">{{ item()!.synopsis }}</p>
+          </section>
+        }
+
+        <!-- Cast -->
+        @if (item()!.cast.length > 0) {
+          <section class="detail__section">
+            <div class="detail__section-header">
+              <h2 class="detail__section-title">Cast</h2>
+            </div>
+            <div class="detail__cast-grid">
+              @for (member of item()!.cast; track member.name) {
+                <div class="detail__cast-member">
+                  <div class="detail__cast-photo">
+                    @if (member.photoUrl) {
+                      <img [src]="member.photoUrl" [alt]="member.name" />
+                    } @else {
+                      <div class="detail__cast-placeholder">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+                      </div>
+                    }
+                  </div>
+                  <p class="detail__cast-name">{{ member.name }}</p>
+                  @if (member.character) {
+                    <p class="detail__cast-character">{{ member.character }}</p>
+                  }
+                </div>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- Trailer -->
+        @if (item()!.trailerUrl) {
+          <section class="detail__section">
+            <h2 class="detail__section-title">Trailer</h2>
+            <div class="detail__trailer-grid">
+              <div class="detail__trailer-card" (click)="onOpenTrailer()">
+                <img
+                  class="detail__trailer-thumb"
+                  [src]="trailerThumbnail()!"
+                  [alt]="item()!.title + ' trailer'"
+                  (error)="$any($event.target).src = 'https://placehold.co/640x360/111/FF0000?text=Trailer'"
+                />
+                <div class="detail__trailer-overlay">
+                  <div class="detail__trailer-play">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32"><path d="M8 5v14l11-7z"/></svg>
+                  </div>
+                </div>
+                <div class="detail__trailer-label">Official Trailer</div>
+              </div>
+            </div>
+          </section>
+        }
+
+      </div>
+
+      <!-- ── Right Column ─────────────────────────── -->
+      <aside class="detail__aside">
+
+        <!-- Rating Card -->
+        <div class="detail__rating-card">
+          <div class="detail__rating-card-header">
+            <span class="detail__rating-card-title">CineTrack Score</span>
+            @if (displayRating()) {
+              <span class="detail__rating-score">{{ displayRating() }}/5.0</span>
+            }
+          </div>
+
+          @if (item()!.rating) {
+            <div class="detail__rating-bars">
+              @for (row of ratingDistribution(); track row.label) {
+                <div class="detail__rating-row">
+                  <span class="detail__rating-label">{{ row.label }}</span>
+                  <div class="detail__rating-track">
+                    <div class="detail__rating-fill" [style.width.%]="row.pct"></div>
+                  </div>
+                  <span class="detail__rating-pct">{{ row.pct }}%</span>
+                </div>
+              }
+            </div>
+          }
+
+          <button class="detail__review-btn" (click)="toggleRatingInput()">
+            @if ((item()!.userRating ?? 0) > 0) {
+              ★ Your Rating: {{ item()!.userRating }}/10
+            } @else {
+              ★ Write a Review
+            }
+          </button>
+        </div>
+
+        <!-- Metadata -->
+        <div class="detail__meta-list">
+          @if (item()!.director) {
+            <div class="detail__meta-item">
+              <p class="detail__meta-label">{{ item()!.type === 'Movie' ? 'Director' : 'Creator' }}</p>
+              <p class="detail__meta-value">{{ item()!.director }}</p>
+            </div>
+          }
+          @if (item()!.writers.length > 0) {
+            <div class="detail__meta-item">
+              <p class="detail__meta-label">{{ item()!.type === 'Movie' ? 'Writers' : 'Writer' }}</p>
+              <p class="detail__meta-value">{{ item()!.writers.join(', ') }}</p>
+            </div>
+          }
+          @if (item()!.studio) {
+            <div class="detail__meta-item">
+              <p class="detail__meta-label">{{ item()!.type === 'Anime' ? 'Studio' : 'Production' }}</p>
+              <p class="detail__meta-value">{{ item()!.studio }}</p>
+            </div>
+          }
+          <div class="detail__meta-item">
+            <p class="detail__meta-label">Release Year</p>
+            <p class="detail__meta-value">{{ item()!.year }}</p>
+          </div>
+          @if (item()!.type !== 'Movie' && item()!.totalEpisodes) {
+            <div class="detail__meta-item">
+              <p class="detail__meta-label">Episodes</p>
+              <p class="detail__meta-value">{{ item()!.episodesWatched }} / {{ item()!.totalEpisodes }} watched</p>
+            </div>
+          }
+        </div>
+
+        <!-- Genre Tags -->
+        <div class="detail__tags">
+          @for (genre of item()!.genres; track genre) {
+            <span class="detail__tag">{{ genre }}</span>
+          }
+        </div>
+
+      </aside>
+    </div>
+
+    <!-- ── More Like This ─────────────────────────── -->
+    @if (similar().length > 0) {
+      <section class="detail__similar">
+        <h2 class="detail__section-title">More Like This</h2>
+        <div class="detail__similar-grid">
+          @for (s of similar(); track s.id) {
+            <div class="detail__similar-card" (click)="navigateSimilar(s.id)">
+              <div class="detail__similar-poster">
+                <img
+                  [src]="s.posterUrl || posterFallback"
+                  [alt]="s.title"
+                  loading="lazy"
+                  (error)="$any($event.target).src = posterFallback"
+                />
+                @if (s.rating) {
+                  <div class="detail__similar-rating">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    {{ s.rating }}
+                  </div>
+                }
+              </div>
+              <p class="detail__similar-title">{{ s.title }}</p>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+  </div>
+}

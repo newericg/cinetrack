@@ -23,6 +23,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./layout/main-layout/main-layout.component').then((m) => m.MainLayoutComponent),
     children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {
         path: 'dashboard',
         loadComponent: () =>
@@ -45,6 +46,23 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/catalog/catalog.component').then((m) => m.CatalogComponent),
         data: { type: 'Anime' },
+      },
+      {
+        path: 'achievements',
+        loadComponent: () =>
+          import('./features/achievements/achievements.component').then(
+            (m) => m.AchievementsComponent
+          ),
+      },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./features/profile/profile.component').then((m) => m.ProfileComponent),
+      },
+      {
+        path: 'media/:id',
+        loadComponent: () =>
+          import('./features/media-detail/media-detail.component').then((m) => m.MediaDetailComponent),
       },
     ],
   },

@@ -7,6 +7,7 @@ import {
   AuthResponse,
   LoginRequest,
   RegisterRequest,
+  UpdateProfileRequest,
   User,
 } from '../models/auth.model';
 
@@ -43,6 +44,18 @@ export class AuthService {
         next: (res) => this.handleAuthSuccess(res),
         finalize: () => this._isLoading.set(false),
       })
+    );
+  }
+
+  getMe() {
+    return this.http.get<User>(`${this.apiUrl}/me`).pipe(
+      tap((user) => this._currentUser.set(user))
+    );
+  }
+
+  updateProfile(request: UpdateProfileRequest) {
+    return this.http.put<User>(`${this.apiUrl}/me`, request).pipe(
+      tap((user) => this._currentUser.set(user))
     );
   }
 

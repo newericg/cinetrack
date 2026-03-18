@@ -11,84 +11,57 @@ namespace CineTrack.API.Controllers;
 [Authorize]
 public class MediaController : ControllerBase
 {
-    private readonly MediaService _mediaService;
+    private readonly UserMediaService _userMediaService;
 
-    public MediaController(MediaService mediaService)
+    public MediaController(UserMediaService userMediaService)
     {
-        _mediaService = mediaService;
+        _userMediaService = userMediaService;
     }
 
-    private string UserId => User.FindFirstValue("sub")!;
+    private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub") ?? string.Empty;
 
-    // GET /api/media?type=Movie&genre=Action&status=Watched&search=dune&page=1&limit=20
+    /// <summary>GET /api/media — lista individual do usuário (itens que adicionou ao catálogo).</summary>
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] MediaQueryParams query)
+    public async Task<IActionResult> GetMyList([FromQuery] MediaQueryParams query)
     {
-        var result = await _mediaService.GetAllAsync(UserId, query);
+        var result = await _userMediaService.GetMyListAsync(UserId, query);
         return Ok(result);
     }
 
-    // GET /api/media/genres
-    [HttpGet("genres")]
-    public async Task<IActionResult> GetGenres()
-    {
-        var genres = await _mediaService.GetGenresAsync(UserId);
-        return Ok(genres);
-    }
-
-    // GET /api/media/{id}
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(string id)
-    {
-        var item = await _mediaService.GetByIdAsync(UserId, id);
-        return item is null ? NotFound() : Ok(item);
-    }
-
-    // POST /api/media
+    /// <summary>POST /api/media — adiciona item do catálogo à lista do usuário.</summary>
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateMediaRequest request)
+    public async Task<IActionResult> AddToList([FromBody] AddToListRequest request)
     {
-        var item = await _mediaService.CreateAsync(UserId, request);
-        return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
+        var item = await _userMediaService.AddToListAsync(UserId, request);
+        return item is null ? NotFound() : CreatedAtAction(null, new { id = item.CatalogItemId }, item);
     }
 
-    // PUT /api/media/{id}
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(string id, [FromBody] UpdateMediaRequest request)
+    /// <summary>DELETE /api/media/{catalogItemId} — remove da lista do usuário.</summary>
+    [HttpDelete("{catalogItemId}")]
+    public async Task<IActionResult> RemoveFromList(string catalogItemId)
     {
-        var item = await _mediaService.UpdateAsync(UserId, id, request);
-        return item is null ? NotFound() : Ok(item);
-    }
-
-    // DELETE /api/media/{id}
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(string id)
-    {
-        var deleted = await _mediaService.DeleteAsync(UserId, id);
+        var deleted = await _userMediaService.RemoveFromListAsync(UserId, catalogItemId);
         return deleted ? NoContent() : NotFound();
     }
 
-    // PATCH /api/media/{id}/watched — toggle watched
-    [HttpPatch("{id}/watched")]
-    public async Task<IActionResult> ToggleWatched(string id)
+    [HttpPatch("{catalogItemId}/watched")]
+    public async Task<IActionResult> ToggleWatched(string catalogItemId)
     {
-        var item = await _mediaService.ToggleWatchedAsync(UserId, id);
+        var item = await _userMediaService.ToggleWatchedAsync(UserId, catalogItemId);
         return item is null ? NotFound() : Ok(item);
     }
 
-    // PATCH /api/media/{id}/rating
-    [HttpPatch("{id}/rating")]
-    public async Task<IActionResult> SetRating(string id, [FromBody] SetRatingRequest request)
+    [HttpPatch("{catalogItemId}/rating")]
+    public async Task<IActionResult> SetRating(string catalogItemId, [FromBody] SetRatingRequest request)
     {
-        var item = await _mediaService.SetRatingAsync(UserId, id, request.UserRating);
+        var item = await _userMediaService.SetRatingAsync(UserId, catalogItemId, request.UserRating);
         return item is null ? NotFound() : Ok(item);
     }
 
-    // PATCH /api/media/{id}/episodes
-    [HttpPatch("{id}/episodes")]
-    public async Task<IActionResult> SetEpisodes(string id, [FromBody] SetEpisodesRequest request)
+    [HttpPatch("{catalogItemId}/episodes")]
+    public async Task<IActionResult> SetEpisodes(string catalogItemId, [FromBody] SetEpisodesRequest request)
     {
-        var item = await _mediaService.SetEpisodesWatchedAsync(UserId, id, request.EpisodesWatched);
+        var item = await _userMediaService.SetEpisodesWatchedAsync(UserId, catalogItemId, request.EpisodesWatched);
         return item is null ? NotFound() : Ok(item);
     }
 }

@@ -56,6 +56,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly stats = signal<Stats | null>(null);
   readonly recentlyWatched = signal<MediaItem[]>([]);
   readonly upNext = signal<MediaItem[]>([]);
+  readonly browseCatalog = signal<MediaItem[]>([]);
   readonly isLoading = signal(true);
 
   private genreChart?: Chart;
@@ -85,12 +86,15 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     this.mediaService
-      .getAll({ status: 'Watched', sortBy: 'watchedAt', sortOrder: 'desc', limit: 10 })
+      .getMyList({ status: 'Watched', sortBy: 'watchedAt', sortOrder: 'desc', limit: 10 })
       .subscribe((res) => this.recentlyWatched.set(res.items));
 
     this.mediaService
-      .getAll({ status: 'Watching', sortBy: 'createdAt', sortOrder: 'desc', limit: 6 })
+      .getMyList({ status: 'Watching', sortBy: 'addedAt', sortOrder: 'desc', limit: 6 })
       .subscribe((res) => this.upNext.set(res.items));
+
+    // Catálogo global — mostra itens para explorar quando a lista está vazia
+    this.mediaService.getCatalog({ limit: 12 }).subscribe((res) => this.browseCatalog.set(res.items));
   }
 
   private initCharts(s: Stats) {

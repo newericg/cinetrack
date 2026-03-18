@@ -39,7 +39,7 @@ public class AuthService
             accessToken,
             user.RefreshToken,
             _tokenService.GetAccessTokenExpiry(),
-            new UserDto(user.Id!, user.Name, user.Email)
+            new UserDto(user.Id!, user.Name, user.Email, user.CreatedAt, user.AvatarUrl, user.Timezone)
         );
     }
 
@@ -64,7 +64,7 @@ public class AuthService
             accessToken,
             refreshToken,
             _tokenService.GetAccessTokenExpiry(),
-            new UserDto(user.Id!, user.Name, user.Email)
+            new UserDto(user.Id!, user.Name, user.Email, user.CreatedAt, user.AvatarUrl, user.Timezone)
         );
     }
 
@@ -88,8 +88,33 @@ public class AuthService
             accessToken,
             newRefreshToken,
             _tokenService.GetAccessTokenExpiry(),
-            new UserDto(user.Id!, user.Name, user.Email)
+            new UserDto(user.Id!, user.Name, user.Email, user.CreatedAt, user.AvatarUrl, user.Timezone)
         );
+    }
+
+    public async Task<UserDto> GetMeAsync(string userId)
+    {
+        var user = await _users.Find(u => u.Id == userId).FirstOrDefaultAsync()
+            ?? throw new UnauthorizedAccessException("User not found.");
+
+        return new UserDto(user.Id!, user.Name, user.Email, user.CreatedAt, user.AvatarUrl, user.Timezone);
+    }
+
+    public async Task<UserDto> UpdateProfileAsync(string userId, UpdateProfileRequest request)
+    {
+        var user = await _users.Find(u => u.Id == userId).FirstOrDefaultAsync()
+            ?? throw new UnauthorizedAccessException("User not found.");
+
+        var updateDef = Builders<User>.Update
+            .Set(u => u.Name, request.Name ?? user.Name)
+            .Set(u => u.Email, request.Email ?? user.Email)
+            .Set(u => u.Timezone, request.Timezone ?? user.Timezone)
+            .Set(u => u.AvatarUrl, request.AvatarUrl ?? user.AvatarUrl);
+
+        await _users.UpdateOneAsync(u => u.Id == userId, updateDef);
+
+        var updated = await _users.Find(u => u.Id == userId).FirstOrDefaultAsync();
+        return new UserDto(updated.Id!, updated.Name, updated.Email, updated.CreatedAt, updated.AvatarUrl, updated.Timezone);
     }
 
     public async Task RevokeAsync(string userId)

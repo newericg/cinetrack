@@ -3,7 +3,13 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { MediaCardComponent } from './components/media-card/media-card.component';
 import { MediaService } from '../../core/services/media.service';
-import { MediaItem, MediaQueryParams, MediaType, WatchStatus } from '../../core/models/media.model';
+import {
+  CatalogQueryParams,
+  MediaItem,
+  MediaQueryParams,
+  MediaType,
+  WatchStatus,
+} from '../../core/models/media.model';
 
 @Component({
   selector: 'app-catalog',
@@ -24,6 +30,7 @@ export class CatalogComponent implements OnInit {
   readonly isLoading = signal(false);
   readonly genres = signal<string[]>([]);
 
+  readonly viewMode = signal<'catalog' | 'mylist'>('catalog');
   readonly selectedStatus = signal<WatchStatus | ''>('');
   readonly selectedGenre = signal('');
   readonly searchQuery = signal('');
@@ -49,40 +56,57 @@ export class CatalogComponent implements OnInit {
   loadItems() {
     this.isLoading.set(true);
 
-    const query: MediaQueryParams = {
-      page: this.currentPage(),
-      limit: 20,
-    };
-
+    const page = this.currentPage();
+    const limit = 20;
     const typeFilter = this.activeTypeFilter();
-    if (typeFilter !== 'All') query.type = typeFilter;
-
-    const status = this.selectedStatus();
-    if (status) query.status = status;
-
     const genre = this.selectedGenre();
-    if (genre) query.genre = genre;
-
     const search = this.searchQuery();
-    if (search) query.search = search;
+    const status = this.selectedStatus();
+    const isMyList = this.viewMode() === 'mylist';
 
-    this.mediaService.getAll(query).subscribe({
-      next: (res) => {
-        if (this.currentPage() === 1) {
-          this.items.set(res.items);
-        } else {
-          this.items.update((prev) => [...prev, ...res.items]);
-        }
-        this.total.set(res.total);
-        this.totalPages.set(res.totalPages);
-        this.isLoading.set(false);
-      },
-      error: () => this.isLoading.set(false),
-    });
+    if (isMyList) {
+      const query: MediaQueryParams = { page, limit };
+      if (typeFilter !== 'All') query.type = typeFilter;
+      if (genre) query.genre = genre;
+      if (search) query.search = search;
+      if (status) query.status = status;
+
+      this.mediaService.getMyList(query).subscribe({
+        next: (res) => this.handleResponse(res, page),
+        error: () => this.isLoading.set(false),
+      });
+    } else {
+      const query: CatalogQueryParams = { page, limit };
+      if (typeFilter !== 'All') query.type = typeFilter;
+      if (genre) query.genre = genre;
+      if (search) query.search = search;
+
+      this.mediaService.getCatalog(query).subscribe({
+        next: (res) => this.handleResponse(res, page),
+        error: () => this.isLoading.set(false),
+      });
+    }
+  }
+
+  private handleResponse(res: { items: MediaItem[]; total: number; totalPages: number }, page: number) {
+    if (page === 1) {
+      this.items.set(res.items);
+    } else {
+      this.items.update((prev) => [...prev, ...res.items]);
+    }
+    this.total.set(res.total);
+    this.totalPages.set(res.totalPages);
+    this.isLoading.set(false);
   }
 
   loadGenres() {
-    this.mediaService.getGenres().subscribe((g) => this.genres.set(g));
+    this.mediaService.getCatalogGenres().subscribe((g) => this.genres.set(g));
+  }
+
+  setViewMode(mode: 'catalog' | 'mylist') {
+    this.viewMode.set(mode);
+    this.currentPage.set(1);
+    this.loadItems();
   }
 
   setTypeFilter(type: MediaType | 'All') {
@@ -117,10 +141,35 @@ export class CatalogComponent implements OnInit {
     }
   }
 
-  onToggleWatched(id: string) {
-    this.mediaService.toggleWatched(id).subscribe((updated) => {
+  onAddToList(catalogItemId: string) {
+    this.mediaService.addToList({ catalogItemId }).subscribe((updated) => {
       this.items.update((list) =>
-        list.map((item) => (item.id === id ? updated : item))
+        list.map((item) => (item.id === catalogItemId ? updated : item))
+      );
+    });
+  }
+
+  onRemoveFromList(catalogItemId: string) {
+    this.mediaService.removeFromList(catalogItemId).subscribe({
+      next: () => {
+        if (this.viewMode() === 'mylist') {
+          this.items.update((list) => list.filter((item) => item.id !== catalogItemId));
+          this.total.update((t) => Math.max(0, t - 1));
+        } else {
+          this.items.update((list) =>
+            list.map((item) =>
+              item.id === catalogItemId ? { ...item, inUserList: false } : item
+            )
+          );
+        }
+      },
+    });
+  }
+
+  onToggleWatched(catalogItemId: string) {
+    this.mediaService.toggleWatched(catalogItemId).subscribe((updated) => {
+      this.items.update((list) =>
+        list.map((item) => (item.id === catalogItemId ? updated : item))
       );
     });
   }

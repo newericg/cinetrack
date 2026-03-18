@@ -17,7 +17,7 @@ public class StatsController : ControllerBase
         _statsService = statsService;
     }
 
-    private string UserId => User.FindFirstValue("sub")!;
+    private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub") ?? string.Empty;
 
     // GET /api/stats
     [HttpGet]

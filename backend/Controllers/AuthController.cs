@@ -74,12 +74,37 @@ public class AuthController : ControllerBase
 
     [Authorize]
     [HttpGet("me")]
-    public IActionResult Me()
+    public async Task<IActionResult> Me()
     {
-        var id = User.FindFirstValue("sub");
-        var name = User.FindFirstValue(ClaimTypes.Name) ?? User.FindFirstValue("name");
-        var email = User.FindFirstValue(ClaimTypes.Email) ?? User.FindFirstValue("email");
+        var userId = User.FindFirstValue("sub");
+        if (userId is null) return Unauthorized();
 
-        return Ok(new UserDto(id!, name!, email!));
+        try
+        {
+            var userDto = await _authService.GetMeAsync(userId);
+            return Ok(userDto);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+    }
+
+    [Authorize]
+    [HttpPut("me")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
+    {
+        var userId = User.FindFirstValue("sub");
+        if (userId is null) return Unauthorized();
+
+        try
+        {
+            var userDto = await _authService.UpdateProfileAsync(userId, request);
+            return Ok(userDto);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
     }
 }
